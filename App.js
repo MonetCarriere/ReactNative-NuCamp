@@ -1,21 +1,18 @@
-import { StatusBar } from 'expo-status-bar';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import Main from './components/MainComponent';
+import { Provider } from 'react-redux';
+import { ConfigureStore } from './redux/configureStore';
+
+const store = ConfigureStore();
 
 export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
+    return (
+        <Provider store={store}>
+          <Main />
+      </Provider>
+    );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+//Wrapping the Main Component with the Provider gives the Main Component and all of it's child components the ability to connect to the redux store
+
+//After doing this you still have to go to each component you want to connect individually and set up that connection.
