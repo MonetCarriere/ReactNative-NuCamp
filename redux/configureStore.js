@@ -6,20 +6,31 @@ import { comments } from './comments';
 import { promotions } from './promotions';
 import { partners } from './partners';
 import { favorites } from './favorites';
+import { persistStore, persistCombineReducers } from 'redux-persist';
+import storage from 'redux-persist/es/storage';
 
-export const ConfigureStore = () => {
-    const store = createStore(
-        combineReducers({
-            campsites,
-            comments,
-            partners,
-            promotions,
-            favorites
-        }),
-        applyMiddleware(thunk, logger)
-    );
+const config = {
+    key: 'root',
+    storage,
+    debug: true
+}
 
-    return store;
+
+    export const ConfigureStore = () => {
+        const store = createStore(
+            persistCombineReducers(config, {
+                campsites,
+                comments,
+                partners,
+                promotions,
+                favorites
+            }),
+            applyMiddleware(thunk, logger)
+        );
+
+        const persistor = persistStore(store);
+
+        return { persistor, store };
 }
 
 //Here we're importing createStore, combineReducers and applyMiddleware as well as the thunk and logger libraries. Then the campsites, comments, promotions and partners
