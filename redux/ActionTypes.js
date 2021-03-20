@@ -16,5 +16,6 @@ export const ADD_PARTNERS = 'ADD_PARTNERS';
 export const PARTNERS_FAILED = 'PARTNERS_FAILED';
 
 export const ADD_FAVORITE = 'ADD_FAVORITE';
+export const DELETE_FAVORITE = 'DELETE_FAVORITE'; 
 
 // This file has all the possible action objects that we can dispatch to reducers to let the application know the current state including when we are loading data, when we're adding data and when our fetching of data has failed for some reason
