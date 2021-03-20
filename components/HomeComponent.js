@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, Animated } from 'react-native';
 import { Card } from 'react-native-elements';
 import { connect } from 'react-redux';
 import { baseUrl } from '../shared/baseUrl';
@@ -45,6 +45,27 @@ if(props.errMess){
 }
 
 class Home extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            scaleValue: new Animated.Value(0)
+        };
+    }
+
+    animate() {
+        Animated.timing(
+            this.state.scaleValue,
+            {
+                toValue: 1, //this '1' represents 100% in terms of scaling
+                duration: 1500, //this represents how long it will take to scale from 0 to 1 (thich is 1.5 seconds)
+                useNativeDriver: true  //helps improve the performance of the animation
+            }
+        ).start(); //built-in method that starts the animation
+    }
+
+    componentDidMount() {  //this is so that when the HomeComponent mounts it will start the animation
+        this.animate();
+    }
     
     static navigationOptions = {
         title: 'Home'
@@ -52,7 +73,7 @@ class Home extends Component {
 
     render() {
         return (
-            <ScrollView>
+            <Animated.ScrollView style={{transform: [{scale: this.state.scaleValue}]}}>
                 <RenderItem
                     item={this.props.campsites.campsites.filter(campsite => campsite.featured)[0]}
                     isLoading={this.props.campsites.isLoading}
@@ -68,7 +89,7 @@ class Home extends Component {
                     isLoading={this.props.partners.isLoading}
                     errMess={this.props.partners.errMess}
                 />
-            </ScrollView>
+            </Animated.ScrollView>
         )
     }
 }
