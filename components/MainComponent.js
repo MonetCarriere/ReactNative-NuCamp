@@ -6,6 +6,7 @@ import About from './AboutComponent';
 import Contact from './ContactComponent';
 import Reservation from './ReservationComponent';
 import Favorites from './FavoritesComponent';
+import Login from './LoginComponent';
 import { View, Platform, StyleSheet, Text, ScrollView, Image } from 'react-native';
 import { createStackNavigator } from 'react-navigation-stack';
 import { createDrawerNavigator, DrawerItems } from 'react-navigation-drawer';
@@ -15,6 +16,7 @@ import SafeAreaView from 'react-native-safe-area-view';
 import { connect } from 'react-redux';
 import { fetchCampsites, fetchComments, fetchPromotions,
     fetchPartners } from '../redux/ActionCreators';
+  
 
 
   //these are the action creators that have been thunked in order to send asynchronus calls using fetch to the server  
@@ -172,6 +174,30 @@ const FavoritesNavigator = createStackNavigator(
 );
 
 
+const LoginNavigator = createStackNavigator(
+    {
+        Login: { screen: Login }
+    },
+    {
+        defaultNavigationOptions: ({navigation}) => ({
+            headerStyle: {
+                backgroundColor: '#5637DD'
+            },
+            headerTintColor: '#fff',
+            headerTitleStyle: {
+                color: '#fff'
+            },
+            headerLeft: <Icon
+                name='sign-in'
+                type='font-awesome'
+                iconStyle={styles.stackIcon}
+                onPress={() => navigation.toggleDrawer()}
+            />
+        })
+    }
+);
+
+
 
 const CustomDrawerContentComponent = props => (
     <ScrollView>
@@ -194,6 +220,19 @@ const CustomDrawerContentComponent = props => (
 
 const MainNavigator = createDrawerNavigator(
     {
+        Login: {
+            screen: LoginNavigator,
+            navigationOptions: {
+                drawerIcon: ({tintColor}) => (
+                    <Icon
+                        name='sign-in'
+                        type='font-awesome'
+                        size={24}
+                        color={tintColor}
+                    />
+                )
+            }
+        },
         Home: {
             screen: HomeNavigator,
             navigationOptions: {
@@ -278,6 +317,9 @@ const MainNavigator = createDrawerNavigator(
         }
     },
     {
+        initialRouteName: 'Home',   //here you use the initalRouteName property to let the app know that you want the Home Page to be the vry first page that pops up
+        drawerBackgroundColor: '#CEC8FF',
+        contentComponent: CustomDrawerContentComponent,
         drawerBackgroundColor: '#CEC8FF',
         contentComponent: CustomDrawerContentComponent
     }
