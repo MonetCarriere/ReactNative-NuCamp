@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
 import { Text, View, ScrollView, FlatList,
-    Modal, Button, StyleSheet, Alert, PanResponder } from 'react-native';
+    Modal, Button, StyleSheet,
+    Alert, PanResponder } from 'react-native';
 import { Card, Icon, Input, Rating } from 'react-native-elements';
 import { connect } from 'react-redux';
 import { baseUrl } from '../shared/baseUrl';
-import { postFavorite, postComment  } from '../redux/ActionCreators';
+import { postFavorite, postComment } from '../redux/ActionCreators';
 import * as Animatable from 'react-native-animatable';
 
 const mapStateToProps = state => {
@@ -17,7 +18,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = {
     postFavorite: campsiteId => postFavorite(campsiteId),
-    postComment : (campsiteId, rating, author, text) => postComment(campsiteId, rating, author, text),
+    postComment: (campsiteId, rating, author, text) => postComment(campsiteId, rating, author, text)
 };
 
 function RenderCampsite(props) {
@@ -27,14 +28,15 @@ function RenderCampsite(props) {
     const view = React.createRef();
 
     const recognizeDrag = ({dx}) => (dx < -200) ? true : false;
-
+    const recognizeComment = ({dx}) => (dx > 200) ? true : false;
+    
     const panResponder = PanResponder.create({
         onStartShouldSetPanResponder: () => true,
         onPanResponderGrant: () => {
-            view.current.rubberBand(1000)
-            .then(endState => console.log(endState.finished ? 'finished' : 'canceled'));
+            view.current
+                .rubberBand(1000)
+                .then(endState => console.log(endState.finished ? 'finished' : 'canceled'));
         },
-        
         onPanResponderEnd: (e, gestureState) => {
             console.log('pan responder end', gestureState);
             if (recognizeDrag(gestureState)) {
@@ -49,12 +51,16 @@ function RenderCampsite(props) {
                         },
                         {
                             text: 'OK',
-                            onPress: () => props.favorite ?
-                                console.log('Already set as a favorite') : props.markFavorite()
+                            onPress: () => 
+                                props.favorite
+                                    ? console.log('Already set as a favorite')
+                                    : props.markFavorite()
                         }
                     ],
                     { cancelable: false }
                 );
+            } else if (recognizeComment(gestureState)) {
+                props.onShowModal();
             }
             return true;
         }
@@ -62,7 +68,13 @@ function RenderCampsite(props) {
 
     if (campsite) {
         return (
-            <Animatable.View animation='fadeInDown' duration={2000} delay={1000} ref={view} {...panResponder.panHandlers}>
+            <Animatable.View
+                animation='fadeInDown'
+                duration={2000}
+                delay={1000}
+                ref={view}
+                {...panResponder.panHandlers}
+            >
                 <Card
                     featuredTitle={campsite.name}
                     image={{uri: baseUrl + campsite.image}}
@@ -83,7 +95,7 @@ function RenderCampsite(props) {
                                     : props.markFavorite()
                             }
                         />
-                    <Icon
+                        <Icon
                             name={'pencil'}
                             type='font-awesome'
                             color='#5637DD'
@@ -150,10 +162,7 @@ class CampsiteInfo extends Component {
     }
 
     handleComment(campsiteId) {
-        const { postComment } = this.props;
-        const { rating, author, text } = this.state;
-        console.log(campsiteId);
-        postComment(campsiteId, rating, author, text);
+        this.props.postComment(campsiteId, this.state.rating, this.state.author, this.state.text);
         this.toggleModal();
     }
 
@@ -257,4 +266,3 @@ const styles = StyleSheet.create({
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(CampsiteInfo);
-
