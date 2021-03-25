@@ -18,7 +18,7 @@ class Login extends Component {
     static navigationOptions = {
         title: 'Login'
     }
-
+    //You're making a form with a login button so when that button is pressed, this handleLogin() is the event handeler method that will handle that
     handleLogin() {
         console.log(JSON.stringify(this.state));   //here we're logging the state to the console
         if (this.state.remember) {    //here this is the code we use to implement the secure store. This code is checking if the 'remember me' checkbox is checked and if it is, we'll save the username and password to the secure store using the setItemAync method
@@ -37,7 +37,7 @@ class Login extends Component {
     }
 
     componentDidMount() {     //since the user info gets deleted from the store, if the remember me checkbox is unchecked when the form is submitted, that means that if there is any user info in the store we can deduce that the checkbox was checked the last time the form was submitted.
-        SecureStore.getItemAsync('userinfo')  //here we use the getItemAync method to check if there's any data under the key 'userInfo' ...this will return a promise that if it resolves we'll return the value stored under that key. That means we can access that value using the Javascript .then() method
+        SecureStore.getItemAsync('userinfo')  //here we use the getItemAync method to check if there's any data under the key 'userInfo' ...this will return a promise that if it comes back resolved we'll return the value stored under that key name (userinfo). That means we can access that value using the Javascript .then() method
             .then(userdata => {  //here we're using a variable intermediary name called 'userdata' (which contains the JSON.string with the username and password)
                 const userinfo = JSON.parse(userdata);  //you have to change this back to a JS object. That's why you use JSON.parse() method and stored that JS object inside the userinfo variable
                 if (userinfo) {  //here we're checking to see if the userinfo variable contains a non null/truthy value and if so, we update the LoginComponent state
@@ -106,4 +106,6 @@ const styles = StyleSheet.create({   //styles requires us to pass an object that
     }
 });
 
-export default Login;
+// All the margin and padding was done by trial and error from just adjustings things until they looked nice and appealing to me :)
+
+export default Login;     

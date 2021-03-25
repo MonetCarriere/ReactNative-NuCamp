@@ -4,6 +4,7 @@ import { Text, View, ScrollView, StyleSheet,
     Picker, Switch, Button, Alert } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Animatable from 'react-native-animatable';
+import * as Notifications from 'expo-notifications';
 
 class Reservation extends Component {
 
@@ -32,9 +33,9 @@ class Reservation extends Component {
             message,
             [
                 {
-                    text: 'Cancel', 
+                    text: 'OK', //********MADE CHANGE HERE */
                     onPress: () => {
-                        console.log('Reservation Search Canceled');
+                        this.presentLocalNotification(this.state.date.toLocaleDateString('en-US'));
                         this.resetForm();
                     }, 
                     style: 'cancel'
@@ -53,8 +54,34 @@ class Reservation extends Component {
             campers: 1,
             hikeIn: false,
             date: new Date(),
-            showCalendar: false
+            showCalendar: false,
         });
+    }
+
+    async presentLocalNotification(date) {
+        function sendNotification() {
+            Notifications.setNotificationHandler({  //the default for notifucation behavior is not show an alert. So to bypass this we use: Notifications.setNotificationHandeler
+                handleNotification: async () => ({
+                    shouldShowAlert: true
+                })
+            });
+
+            Notifications.scheduleNotificationAsync({
+                content: {
+                    title: 'Your Campsite Reservation Search',
+                    body: `Search for ${date} requested`
+                },
+                trigger: null    //setting the trigger proprty to 'null' will cause the notification to fire immediately. It can also be used to schedule a notification in the future. For example, you can give it a time value that will set a note for 30 min in the future
+            });
+        }
+             //!!!!THE ONLY TIME YOU CAN USE AN 'await' KEYWORD IS INSIDE A 'async' FUNCTION
+        let permissions = await Notifications.getPermissionsAsync();
+        if (!permissions.granted) {
+            permissions = await Notifications.requestPermissionsAsync();
+        }
+        if (permissions.granted) {
+            sendNotification();
+        }
     }
 
     render() {

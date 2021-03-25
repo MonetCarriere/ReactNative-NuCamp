@@ -199,7 +199,7 @@ const LoginNavigator = createStackNavigator(
 
 
 
-const CustomDrawerContentComponent = props => (
+const CustomDrawerContentComponent = props => ( 
     <ScrollView>
         <SafeAreaView 
             style={styles.container}
