@@ -1,14 +1,18 @@
 import React, { Component } from 'react';
-import { View, Button, StyleSheet } from 'react-native';
-import { Input, CheckBox } from 'react-native-elements';   //helps us create the form
+import { View, StyleSheet, ScrollView, Image } from 'react-native';
+import { Input, CheckBox, Button, Icon } from 'react-native-elements';
 import * as SecureStore from 'expo-secure-store';
+import * as ImagePicker from 'expo-image-picker';
+import * as Permissions from 'expo-permissions';
+import { createBottomTabNavigator } from 'react-navigation-tabs';
+import { baseUrl } from '../shared/baseUrl';
 
-class Login extends Component {
+class LoginTab extends Component {
 
     constructor(props) {
         super(props);
 
-        this.state = {        //here we use state o hold the username and password which will initalize to empty strings and to hold the state for the 'remember me?' checkbox on the form
+        this.state = {
             username: '',
             password: '',
             remember: false
@@ -16,31 +20,38 @@ class Login extends Component {
     }
 
     static navigationOptions = {
-        title: 'Login'
+        title: 'Login',
+        tabBarIcon: ({tintColor}) => (
+            <Icon
+                name='sign-in'
+                type='font-awesome'
+                iconStyle={{color: tintColor}}
+            />
+        )
     }
-    //You're making a form with a login button so when that button is pressed, this handleLogin() is the event handeler method that will handle that
+
     handleLogin() {
-        console.log(JSON.stringify(this.state));   //here we're logging the state to the console
-        if (this.state.remember) {    //here this is the code we use to implement the secure store. This code is checking if the 'remember me' checkbox is checked and if it is, we'll save the username and password to the secure store using the setItemAync method
+        console.log(JSON.stringify(this.state));
+        if (this.state.remember) {
             SecureStore.setItemAsync(
-                'userinfo',           //here 'userInfo is the key
-                JSON.stringify({      //here username: & password is the value. *ALL VALUES HAVE TO BE CONVERTED TO A JSON STRING USING JSON.stringify METHOD BEFORE YOU CAN STIRE IT.*
+                'userinfo',
+                JSON.stringify({
                     username: this.state.username,
                     password: this.state.password
                 })
-            ).catch(error => console.log('Could not save user info', error));   //all the secure store methods return a promise that will reject if there is an error. You can check for a rejected promise by using the catch method at the end of the option. Any error message will be automatically passed in as a argument
-        } else {    //here were handeling the logic for if the 'remember me' checkbox isn't checked. If it's not checked then we're going to delete any user info in the secure store. To do this, we use the deleteItemSsync method to delete any data stored under the key of 'userInfo'
+            ).catch(error => console.log('Could not save user info', error));
+        } else {
             SecureStore.deleteItemAsync('userinfo').catch(
-                error => console.log('Could not delete user info', error)  //this handels if there is an error from the deleteItem Aync promise
+                error => console.log('Could not delete user info', error)
             );
         }
     }
 
-    componentDidMount() {     //since the user info gets deleted from the store, if the remember me checkbox is unchecked when the form is submitted, that means that if there is any user info in the store we can deduce that the checkbox was checked the last time the form was submitted.
-        SecureStore.getItemAsync('userinfo')  //here we use the getItemAync method to check if there's any data under the key 'userInfo' ...this will return a promise that if it comes back resolved we'll return the value stored under that key name (userinfo). That means we can access that value using the Javascript .then() method
-            .then(userdata => {  //here we're using a variable intermediary name called 'userdata' (which contains the JSON.string with the username and password)
-                const userinfo = JSON.parse(userdata);  //you have to change this back to a JS object. That's why you use JSON.parse() method and stored that JS object inside the userinfo variable
-                if (userinfo) {  //here we're checking to see if the userinfo variable contains a non null/truthy value and if so, we update the LoginComponent state
+    componentDidMount() {
+        SecureStore.getItemAsync('userinfo')
+            .then(userdata => {
+                const userinfo = JSON.parse(userdata);
+                if (userinfo) {
                     this.setState({username: userinfo.username});
                     this.setState({password: userinfo.password});
                     this.setState({remember: true})
@@ -50,12 +61,12 @@ class Login extends Component {
 
     render() {
         return (
-            <View style={styles.container}>  
+            <View style={styles.container}>
                 <Input
                     placeholder='Username'
                     leftIcon={{type: 'font-awesome', name: 'user-o'}}
-                    onChangeText={username => this.setState({username})}   //here with the onChangeText prop, whenever the text value for this user is changed we'll update the username i n the state using set state
-                    value={this.state.username}  //this value always reflects the state (which makes it a controlled component)
+                    onChangeText={username => this.setState({username})}
+                    value={this.state.username}
                     containerStyle={styles.formInput}
                     leftIconContainerStyle={styles.formIcon}
                 />
@@ -71,14 +82,38 @@ class Login extends Component {
                     title='Remember Me'
                     center
                     checked={this.state.remember}
-                    onPress={() => this.setState({remember: !this.state.remember})}  //here we use the OnPress prop to change the state of remember to the opposite of whatever it currently is. So if it's false, it'll change to true and vice versa
+                    onPress={() => this.setState({remember: !this.state.remember})}
                     containerStyle={styles.formCheckbox}
                 />
                 <View style={styles.formButton}>
                     <Button
-                        onPress={() => this.handleLogin()}  //here we call the handleLogin method we created
+                        onPress={() => this.handleLogin()}
                         title='Login'
-                        color='#5637DD'
+                        icon={
+                            <Icon
+                                name='sign-in'
+                                type='font-awesome'
+                                color='#fff'
+                                iconStyle={{marginRight: 10}}
+                            />
+                        }
+                        buttonStyle={{backgroundColor: '#5637DD'}}
+                    />
+                </View>
+                <View style={styles.formButton}>
+                    <Button
+                        onPress={() => this.props.navigation.navigate('Register')}
+                        title='Register'
+                        type='clear'
+                        icon={
+                            <Icon
+                                name='user-plus'
+                                type='font-awesome'
+                                color='blue'
+                                iconStyle={{marginRight: 10}}
+                            />
+                        }
+                        titleStyle={{color: 'blue'}}
                     />
                 </View>
             </View>
@@ -86,26 +121,192 @@ class Login extends Component {
     }
 }
 
-const styles = StyleSheet.create({   //styles requires us to pass an object that defines all the styles we're using
+class RegisterTab extends Component {
+
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            username: '',
+            password: '',
+            firstname: '',
+            lastname: '',
+            email: '',
+            remember: false,
+            imageUrl: baseUrl + 'images/logo.png'
+        };
+    }
+
+    static navigationOptions = {
+        title: 'Register',
+        tabBarIcon: ({tintColor}) => (
+            <Icon
+                name='user-plus'
+                type='font-awesome'
+                iconStyle={{color: tintColor}}
+            />
+        )
+    }
+
+    getImageFromCamera = async () => {
+        const cameraPermission = await Permissions.askAsync(Permissions.CAMERA);
+        const cameraRollPermission = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+
+        if (cameraPermission.status === 'granted' && cameraRollPermission.status === 'granted') {
+            const capturedImage = await ImagePicker.launchCameraAsync({
+                allowsEditing: true,
+                aspect: [1, 1]
+            });
+            if (!capturedImage.cancelled) {
+                console.log(capturedImage);
+                this.setState({imageUrl: capturedImage.uri});
+            }
+        }
+    }
+
+    handleRegister() {
+        console.log(JSON.stringify(this.state));
+        if (this.state.remember) {
+            SecureStore.setItemAsync('userinfo', JSON.stringify(
+                {username: this.state.username, password: this.state.password}))
+                .catch(error => console.log('Could not save user info', error));
+        } else {
+            SecureStore.deleteItemAsync('userinfo').catch(
+                error => console.log('Could not delete user info', error)
+            );
+        }
+    }
+
+    render() {
+        return (
+            <ScrollView>
+                <View style={styles.container}>
+                    <View style={styles.imageContainer}>
+                        <Image
+                            source={{uri: this.state.imageUrl}}
+                            loadingIndicatorSource={require('./images/logo.png')}
+                            style={styles.image}
+                        />
+                        <Button
+                            title='Camera'
+                            onPress={this.getImageFromCamera}
+                        />
+                    </View>
+                    <Input
+                        placeholder='Username'
+                        leftIcon={{type: 'font-awesome', name: 'user-o'}}
+                        onChangeText={username => this.setState({username})}
+                        value={this.state.username}
+                        containerStyle={styles.formInput}
+                        leftIconContainerStyle={styles.formIcon}
+                    />
+                    <Input
+                        placeholder='Password'
+                        leftIcon={{type: 'font-awesome', name: 'key'}}
+                        onChangeText={password => this.setState({password})}
+                        value={this.state.password}
+                        containerStyle={styles.formInput}
+                        leftIconContainerStyle={styles.formIcon}
+                    />
+                    <Input
+                        placeholder='First Name'
+                        leftIcon={{type: 'font-awesome', name: 'user-o'}}
+                        onChangeText={firstname => this.setState({firstname})}
+                        value={this.state.firstname}
+                        containerStyle={styles.formInput}
+                        leftIconContainerStyle={styles.formIcon}
+                    />
+                    <Input
+                        placeholder='Last Name'
+                        leftIcon={{type: 'font-awesome', name: 'user-o'}}
+                        onChangeText={lastname => this.setState({lastname})}
+                        value={this.state.lastname}
+                        containerStyle={styles.formInput}
+                        leftIconContainerStyle={styles.formIcon}
+                    />
+                    <Input
+                        placeholder='Email'
+                        leftIcon={{type: 'font-awesome', name: 'envelope-o'}}
+                        onChangeText={email => this.setState({email})}
+                        value={this.state.email}
+                        containerStyle={styles.formInput}
+                        leftIconContainerStyle={styles.formIcon}
+                    />
+                    <CheckBox
+                        title='Remember Me'
+                        center
+                        checked={this.state.remember}
+                        onPress={() => this.setState({remember: !this.state.remember})}
+                        containerStyle={styles.formCheckbox}
+                    />
+                    <View style={styles.formButton}>
+                        <Button
+                            onPress={() => this.handleRegister()}
+                            title='Register'
+                            icon={
+                                <Icon
+                                    name='user-plus'
+                                    type='font-awesome'
+                                    color='#fff'
+                                    iconStyle={{marginRight: 10}}
+                                />
+                            }
+                            buttonStyle={{backgroundColor: '#5637DD'}}
+                        />
+                    </View>
+                </View>
+            </ScrollView>
+        );
+    }
+}
+
+const Login = createBottomTabNavigator(
+    {
+        Login: LoginTab,
+        Register: RegisterTab
+    },
+    {
+        tabBarOptions: {
+            activeBackgroundColor: '#5637DD',
+            inactiveBackgroundColor: '#CEC8FF',
+            activeTintColor: '#fff',
+            inactiveTintColor: '#808080',
+            labelStyle: {fontSize: 16}
+        }
+    }
+);
+
+const styles = StyleSheet.create({
     container: {
         justifyContent: 'center',
-        margin: 20
+        margin: 10
     },
     formIcon: {
         marginRight: 10
     },
     formInput: {
-        padding: 10
+        padding: 8
     },
     formCheckbox: {
-        margin: 10,
+        margin: 8,
         backgroundColor: null
     },
     formButton: {
-        margin: 40
+        margin: 20,
+        marginRight: 40,
+        marginLeft: 40
+    },
+    imageContainer: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-evenly',
+        margin: 10
+    },
+    image: {
+        width: 60,
+        height: 60
     }
 });
 
-// All the margin and padding was done by trial and error from just adjustings things until they looked nice and appealing to me :)
-
-export default Login;     
+export default Login;
